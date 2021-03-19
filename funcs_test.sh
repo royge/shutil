@@ -22,7 +22,8 @@ failure () {
   echo "FAILURE!!!"
 }
 
-source ${PWD}/funcs.sh
+# NOTE: You might use `source` if `.` won't work.
+. ${PWD}/funcs.sh
 
 test_remove_1st () {
   echo "Testing remove_1st"
