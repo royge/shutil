@@ -1,0 +1,3 @@
+language: bash
+
+script: chmod u+x funcs_test.sh
