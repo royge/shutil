@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Remove first charater in a string and print the results into sdtout.
 # See the tests for usage example.
