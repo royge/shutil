@@ -72,6 +72,7 @@ create_docker_image () {
     VERSION=$4
     SHORT_SHA=$5
     RELEASE_TAG=$6
+    TAG=$VERSION-$SHORT_SHA
 
     # We don't create a new docker image for production environment.
     if [ "$ENV" != "prod" ]
