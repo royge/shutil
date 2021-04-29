@@ -80,12 +80,16 @@ create_docker_image () {
         docker build -t $IMAGE .
         docker tag $IMAGE:latest $IMAGE:$TAG
         docker push $IMAGE:latest
+
+        echo "$IMAGE:latest docker image pushed"
     fi
 
     if [ "$ENV" == "stage" ]
     then
         docker tag $IMAGE:latest $IMAGE:beta
         docker push $IMAGE:beta
+
+        echo "$IMAGE:beta docker image pushed"
     fi
 
     if [ "$ENV" == "prod" ]
@@ -101,9 +105,13 @@ create_docker_image () {
 
         # Push production stable docker image.
         docker push $IMAGE:stable
+
+        echo "$IMAGE:stable docker image pushed"
     fi
 
     docker push $IMAGE:$TAG
+
+    echo "$IMAGE:$TAG docker image pushed"
 }
 
 # Exit if `ENV` is unknown or no target deployment environment identified.

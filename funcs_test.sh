@@ -189,6 +189,66 @@ test_exit_if_unknown_env_unknown () {
   success
 }
 
+test_create_docker_image_test () {
+  echo "Testing create_docker_image - test"
+
+  got=$(create_docker_image "test" "royge/shutil" "royge/shutil" "1.0.0" "fg3rf23d" "v1.0.0")
+
+  want="royge/shutil:latest docker image pushed"
+  if [[ "$got" != *"$want"* ]]
+  then
+    failure "$want" "$got"
+  fi
+
+  want="royge/shutil:1.0.0-fg3rf23d docker image pushed"
+  if [[ "$got" != *"$want"* ]]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
+test_create_docker_image_stage () {
+  echo "Testing create_docker_image - stage"
+
+  got=$(create_docker_image "stage" "royge/shutil" "royge/shutil" "1.0.0" "fg3rf23d" "v1.0.0")
+
+  want="royge/shutil:beta docker image pushed"
+  if [[ "$got" != *"$want"* ]]
+  then
+    failure "$want" "$got"
+  fi
+
+  want="royge/shutil:1.0.0-fg3rf23d docker image pushed"
+  if [[ "$got" != *"$want"* ]]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
+test_create_docker_image_prod () {
+  echo "Testing create_docker_image - prod"
+
+  got=$(create_docker_image "prod" "royge/shutil" "royge/shutil" "1.0.0" "fg3rf23d" "v1.0.0")
+
+  want="royge/shutil:stable docker image pushed"
+  if [[ "$got" != *"$want"* ]]
+  then
+    failure "$want" "$got"
+  fi
+
+  want="royge/shutil:1.0.0 docker image pushed"
+  if [[ "$got" != *"$want"* ]]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
 test_remove_1st
 test_validate_envs_valid
 test_validate_envs_invalid
@@ -201,3 +261,6 @@ test_get_deployment_env_hotfix_branch
 test_get_deployment_env_bugfix_branch
 test_exit_if_unknown_env_test
 test_exit_if_unknown_env_unknown
+test_create_docker_image_test
+test_create_docker_image_stage
+test_create_docker_image_prod
