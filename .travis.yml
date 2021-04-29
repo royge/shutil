@@ -1,3 +1,6 @@
 language: bash
 
+services:
+  - docker
+
 script: chmod u+x funcs_test.sh && ./funcs_test.sh
