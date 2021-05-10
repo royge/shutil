@@ -249,6 +249,34 @@ test_create_docker_image_prod () {
   success
 }
 
+test_get_release_type_prod () {
+  echo "Testing get_release_type - prod"
+
+  got=$(get_release_type "v1.1.0")
+
+  want="prod"
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
+test_get_release_type_stage () {
+  echo "Testing get_release_type - stage"
+
+  got=$(get_release_type "v1.1.0-58.1")
+
+  want="stage"
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
 test_remove_1st
 test_validate_envs_valid
 test_validate_envs_invalid
@@ -264,3 +292,5 @@ test_exit_if_unknown_env_unknown
 test_create_docker_image_test
 test_create_docker_image_stage
 test_create_docker_image_prod
+test_get_release_type_prod
+test_get_release_type_stage

@@ -63,7 +63,9 @@ get_deployment_env () {
 }
 
 # Build and push docker images for respective environment when applicable.
+#
 # WARNING! Please be careful about positional arguments.
+#
 # NOTE: See tests for usage example.
 create_docker_image () {
     ENV=$1
@@ -123,4 +125,22 @@ exit_if_unknown_env () {
         echo "INFO: not for deployment"
         exit 0
     fi
+}
+
+# Get release type.
+#
+# - If the tag is v1.1.0 pattern it is considered as a production release.
+# - If the tag is v1.1.0-2 pattern it is considered as a pre/staging release.
+#
+# NOTE: See tests for usage examples.
+get_release_type () {
+    RELEASE_TAG=$1
+
+    if [[ "$RELEASE_TAG" == *-* ]]
+    then
+        echo "stage"
+        exit 0
+    fi
+
+    echo "prod"
 }
