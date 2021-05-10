@@ -130,7 +130,7 @@ exit_if_unknown_env () {
 # Get release type.
 #
 # - If the tag is v1.1.0 pattern it is considered as a production release.
-# - If the tag is v1.1.0-2 pattern it is considered as a pre/staging release.
+# - If the tag is v1.1.0-2 pattern it is considered as a non-production release.
 #
 # NOTE: See tests for usage examples.
 get_release_type () {
@@ -138,7 +138,7 @@ get_release_type () {
 
     if [[ "$RELEASE_TAG" == *-* ]]
     then
-        echo "stage"
+        echo "non-prod"
         exit 0
     fi
 

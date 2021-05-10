@@ -263,12 +263,12 @@ test_get_release_type_prod () {
   success
 }
 
-test_get_release_type_stage () {
-  echo "Testing get_release_type - stage"
+test_get_release_type_non_prod () {
+  echo "Testing get_release_type - non-production"
 
   got=$(get_release_type "v1.1.0-58.1")
 
-  want="stage"
+  want="non-prod"
   if [ "$want" != "$got" ]
   then
     failure "$want" "$got"
@@ -293,4 +293,4 @@ test_create_docker_image_test
 test_create_docker_image_stage
 test_create_docker_image_prod
 test_get_release_type_prod
-test_get_release_type_stage
+test_get_release_type_non_prod
