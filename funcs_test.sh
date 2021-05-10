@@ -277,6 +277,20 @@ test_get_release_type_non_prod () {
   success
 }
 
+test_exit_if_non_production_release () {
+  echo "Testing exit_if_unknown_env_unknown - v1.1.0-58.1"
+
+  want="INFO: non-production release"
+  got=$(exit_if_non_production_release "v1.1.0-58.1")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
 test_remove_1st
 test_validate_envs_valid
 test_validate_envs_invalid
@@ -294,3 +308,4 @@ test_create_docker_image_stage
 test_create_docker_image_prod
 test_get_release_type_prod
 test_get_release_type_non_prod
+test_exit_if_non_production_release

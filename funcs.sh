@@ -144,3 +144,14 @@ get_release_type () {
 
     echo "prod"
 }
+
+exit_if_non_production_release () {
+    RELEASE_TAG=$1
+
+    RELEASE_TYPE=$(get_release_type $RELEASE_TAG)
+    if [ "$RELEASE_TYPE" == "non-prod" ]
+    then
+        echo "INFO: non-production release"
+        exit 0
+    fi
+}
