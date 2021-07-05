@@ -53,6 +53,12 @@ get_deployment_env () {
     exit 0
   fi
 
+  if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == v*-pilot ]]
+  then
+    echo "pilot"
+    exit 0
+  fi
+
   if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == v* ]]
   then
     echo "prod"
@@ -119,8 +125,9 @@ create_docker_image () {
 # Exit if `ENV` is unknown or no target deployment environment identified.
 exit_if_unknown_env () {
     ENV=$1
+    OPT=$2
 
-    if [ "$ENV" == "unknown" ]
+    if [ "$ENV" == "unknown" ] && [ "$OPT" != "force-deploy" ]
     then
         echo "INFO: not for deployment"
         exit 0

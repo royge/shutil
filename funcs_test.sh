@@ -109,6 +109,19 @@ test_get_deployment_env_release_tag () {
   success
 }
 
+test_get_deployment_env_pilot_release_tag () {
+  echo "Testing get_deployment_env - pilot release tag"
+  got=$(get_deployment_env v1.2.3-pilot)
+  want=pilot
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
 test_get_deployment_env_unknown () {
   echo "Testing get_deployment_env - unknown"
   got=$(get_deployment_env)
@@ -184,6 +197,20 @@ test_exit_if_unknown_env_unknown () {
   if [ "$want" != "$got" ]
   then
     failure "$want" "$got"
+  fi
+
+  success
+}
+
+test_exit_if_unknown_env_unknown_force_deploy () {
+  echo "Testing exit_if_unknown_env - unknown and force deploy"
+
+  want=""
+  got=$(exit_if_unknown_env "unknown" "force-deploy")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "'$want'" "'$got'"
   fi
 
   success
@@ -297,12 +324,14 @@ test_validate_envs_invalid
 test_get_deployment_env_develop_branch
 test_get_deployment_env_release_branch
 test_get_deployment_env_release_tag
+test_get_deployment_env_pilot_release_tag
 test_get_deployment_env_unknown
 test_get_deployment_env_feature_branch
 test_get_deployment_env_hotfix_branch
 test_get_deployment_env_bugfix_branch
 test_exit_if_unknown_env_test
 test_exit_if_unknown_env_unknown
+test_exit_if_unknown_env_unknown_force_deploy
 test_create_docker_image_test
 test_create_docker_image_stage
 test_create_docker_image_prod
