@@ -162,3 +162,10 @@ exit_if_non_production_release () {
         exit 0
     fi
 }
+
+get_version_from_pilot () {
+    RELEASE_TAG=$1
+    SPACE=""
+
+    echo "$RELEASE_TAG" | sed "s/-pilot/$SPACE/" | sed "s/v/$SPACE/"
+}

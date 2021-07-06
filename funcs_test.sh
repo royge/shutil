@@ -318,6 +318,34 @@ test_exit_if_non_production_release () {
   success
 }
 
+test_get_version_from_pilot () {
+  echo "Testing get_version_from_pilot - v1.1.12-pilot"
+
+  want="1.1.12"
+  got=$(get_version_from_pilot "v1.1.12-pilot")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
+test_get_version_from_pilot_with_extra () {
+  echo "Testing get_version_from_pilot - v1.1.34-67-pilot"
+
+  want="1.1.34-67"
+  got=$(get_version_from_pilot "v1.1.34-67-pilot")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
 test_remove_1st
 test_validate_envs_valid
 test_validate_envs_invalid
@@ -338,3 +366,5 @@ test_create_docker_image_prod
 test_get_release_type_prod
 test_get_release_type_non_prod
 test_exit_if_non_production_release
+test_get_version_from_pilot
+test_get_version_from_pilot_with_extra
