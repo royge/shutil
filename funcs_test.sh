@@ -276,6 +276,26 @@ test_create_docker_image_prod () {
   success
 }
 
+test_create_docker_image_pilot () {
+  echo "Testing create_docker_image - pilot"
+
+  got=$(create_docker_image "pilot" "royge/shutil" "royge/shutil" "1.0.0" "fg3rf23d" "v1.0.0-pilot")
+
+  want="royge/shutil:stable docker image pushed"
+  if [[ "$got" != *"$want"* ]]
+  then
+    failure "$want" "$got"
+  fi
+
+  want="royge/shutil:1.0.0 docker image pushed"
+  if [[ "$got" != *"$want"* ]]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
 test_get_release_type_prod () {
   echo "Testing get_release_type - prod"
 
@@ -318,11 +338,25 @@ test_exit_if_non_production_release () {
   success
 }
 
+test_get_version () {
+  echo "Testing get_version - v1.1.10"
+
+  want="1.1.10"
+  got=$(get_version "v1.1.10")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
 test_get_version_from_pilot () {
-  echo "Testing get_version_from_pilot - v1.1.12-pilot"
+  echo "Testing get_version - v1.1.12-pilot"
 
   want="1.1.12"
-  got=$(get_version_from_pilot "v1.1.12-pilot")
+  got=$(get_version "v1.1.12-pilot")
 
   if [ "$want" != "$got" ]
   then
@@ -333,10 +367,10 @@ test_get_version_from_pilot () {
 }
 
 test_get_version_from_pilot_with_extra () {
-  echo "Testing get_version_from_pilot - v1.1.34-67-pilot"
+  echo "Testing get_version - v1.1.34-67-pilot"
 
   want="1.1.34-67"
-  got=$(get_version_from_pilot "v1.1.34-67-pilot")
+  got=$(get_version "v1.1.34-67-pilot")
 
   if [ "$want" != "$got" ]
   then
@@ -363,8 +397,10 @@ test_exit_if_unknown_env_unknown_force_deploy
 test_create_docker_image_test
 test_create_docker_image_stage
 test_create_docker_image_prod
+test_create_docker_image_pilot
 test_get_release_type_prod
 test_get_release_type_non_prod
 test_exit_if_non_production_release
+test_get_version
 test_get_version_from_pilot
 test_get_version_from_pilot_with_extra

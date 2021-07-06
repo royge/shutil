@@ -82,8 +82,8 @@ create_docker_image () {
     RELEASE_TAG=$6
     TAG=$VERSION-$SHORT_SHA
 
-    # We don't create a new docker image for production environment.
-    if [ "$ENV" != "prod" ]
+    # We don't create a new docker image for production & piloting environment.
+    if [ "$ENV" != "prod" ] && [ "$ENV" != "pilot" ]
     then
         docker build -t $IMAGE .
         docker tag $IMAGE:latest $IMAGE:$TAG
@@ -100,9 +100,9 @@ create_docker_image () {
         echo "$IMAGE:beta docker image pushed"
     fi
 
-    if [ "$ENV" == "prod" ]
+    if [ "$ENV" == "prod" ] || [ "$ENV" == "pilot" ]
     then
-        TAG=$(remove_1st $RELEASE_TAG)
+        TAG=$(get_version $RELEASE_TAG)
 
         # Pull beta docker image from staging.
         docker pull $STAGE_IMAGE:beta
@@ -163,7 +163,7 @@ exit_if_non_production_release () {
     fi
 }
 
-get_version_from_pilot () {
+get_version () {
     RELEASE_TAG=$1
     SPACE=""
 
