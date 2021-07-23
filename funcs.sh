@@ -152,6 +152,7 @@ get_release_type () {
     echo "prod"
 }
 
+# NOTE: See tests for usage examples.
 exit_if_non_production_release () {
     RELEASE_TAG=$1
 
@@ -163,9 +164,22 @@ exit_if_non_production_release () {
     fi
 }
 
+# NOTE: See tests for usage examples.
 get_version () {
     RELEASE_TAG=$1
     SPACE=""
 
     echo "$RELEASE_TAG" | sed "s/-pilot/$SPACE/" | sed "s/v/$SPACE/"
+}
+
+# Exit if `BRANCH` is a hotfix release.
+# NOTE: See tests for usage examples.
+exit_if_hotfix () {
+    BRANCH=$1
+
+    if [[ "$BRANCH" == release/v*-hotfix ]]
+    then
+        echo "INFO: hotfix release"
+        exit 0
+    fi
 }

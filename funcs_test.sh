@@ -380,6 +380,34 @@ test_get_version_from_pilot_with_extra () {
   success
 }
 
+test_exit_if_hotfix_ok () {
+  echo "Testing exit_if_hotfix - release/v1.2.3-hotfix"
+
+  want="INFO: hotfix release"
+  got=$(exit_if_hotfix "release/v1.2.3-hotfix")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
+test_exit_if_hotfix_not_ok () {
+  echo "Testing exit_if_hotfix - release/hotfix-1234"
+
+  want=""
+  got=$(exit_if_hotfix "release/hotfix-1234")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
 test_remove_1st
 test_validate_envs_valid
 test_validate_envs_invalid
@@ -404,3 +432,5 @@ test_exit_if_non_production_release
 test_get_version
 test_get_version_from_pilot
 test_get_version_from_pilot_with_extra
+test_exit_if_hotfix_ok
+test_exit_if_hotfix_not_ok
