@@ -24,23 +24,6 @@ failure () {
 
 source ${PWD}/funcs.sh
 
-test_remove_1st () {
-  echo "Testing remove_1st"
-
-  target="v1.4.5"
-  want="1.4.5"
-
-  got=$(remove_1st $target)
-
-  if [ $got != $want ]
-  then
-    failure "$want" "$got"
-    exit 1
-  fi
-
-  success
-}
-
 test_validate_envs_valid () {
   echo "Testing validate_envs - VALID"
 
@@ -109,10 +92,23 @@ test_get_deployment_env_release_tag () {
   success
 }
 
-test_get_deployment_env_pilot_release_tag () {
-  echo "Testing get_deployment_env - pilot release tag"
-  got=$(get_deployment_env v1.2.3-pilot)
-  want=pilot
+test_get_deployment_env_uat_release_tag () {
+  echo "Testing get_deployment_env - rc tag"
+  got=$(get_deployment_env v1.2.3-rc)
+  want=uat
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
+test_get_deployment_env_pre_release_tag () {
+  echo "Testing get_deployment_env - pre-release tag"
+  got=$(get_deployment_env v1.2.3-65)
+  want=unknown
 
   if [ "$want" != "$got" ]
   then
@@ -256,18 +252,12 @@ test_create_docker_image_stage () {
   success
 }
 
-test_create_docker_image_prod () {
-  echo "Testing create_docker_image - prod"
+test_create_docker_image_uat () {
+  echo "Testing create_docker_image - uat"
 
-  got=$(create_docker_image "prod" "royge/shutil" "royge/shutil" "1.0.0" "fg3rf23d" "v1.0.0")
+  got=$(create_docker_image "uat" "royge/shutil" "royge/shutil:beta" "1.0.0" "fg3rf23d" "v1.0.0-rc")
 
-  want="royge/shutil:stable docker image pushed"
-  if [[ "$got" != *"$want"* ]]
-  then
-    failure "$want" "$got"
-  fi
-
-  want="royge/shutil:1.0.0 docker image pushed"
+  want="royge/shutil:1.0.0-rc docker image pushed"
   if [[ "$got" != *"$want"* ]]
   then
     failure "$want" "$got"
@@ -276,10 +266,10 @@ test_create_docker_image_prod () {
   success
 }
 
-test_create_docker_image_pilot () {
-  echo "Testing create_docker_image - pilot"
+test_create_docker_image_prod () {
+  echo "Testing create_docker_image - prod"
 
-  got=$(create_docker_image "pilot" "royge/shutil" "royge/shutil" "1.0.0" "fg3rf23d" "v1.0.0-pilot")
+  got=$(create_docker_image "prod" "royge/shutil" "royge/shutil" "1.0.0" "fg3rf23d" "v1.0.0")
 
   want="royge/shutil:stable docker image pushed"
   if [[ "$got" != *"$want"* ]]
@@ -352,11 +342,11 @@ test_get_version () {
   success
 }
 
-test_get_version_from_pilot () {
-  echo "Testing get_version - v1.1.12-pilot"
+test_get_version_from_rc () {
+  echo "Testing get_version - v1.1.12-rc"
 
   want="1.1.12"
-  got=$(get_version "v1.1.12-pilot")
+  got=$(get_version "v1.1.12-rc")
 
   if [ "$want" != "$got" ]
   then
@@ -366,11 +356,11 @@ test_get_version_from_pilot () {
   success
 }
 
-test_get_version_from_pilot_with_extra () {
-  echo "Testing get_version - v1.1.34-67-pilot"
+test_get_version_from_rc_with_extra () {
+  echo "Testing get_version - v1.1.34-67-rc"
 
   want="1.1.34-67"
-  got=$(get_version "v1.1.34-67-pilot")
+  got=$(get_version "v1.1.34-67-rc")
 
   if [ "$want" != "$got" ]
   then
@@ -408,13 +398,13 @@ test_exit_if_hotfix_not_ok () {
   success
 }
 
-test_remove_1st
 test_validate_envs_valid
 test_validate_envs_invalid
 test_get_deployment_env_develop_branch
 test_get_deployment_env_release_branch
 test_get_deployment_env_release_tag
-test_get_deployment_env_pilot_release_tag
+test_get_deployment_env_uat_release_tag
+test_get_deployment_env_pre_release_tag
 test_get_deployment_env_unknown
 test_get_deployment_env_feature_branch
 test_get_deployment_env_hotfix_branch
@@ -424,13 +414,18 @@ test_exit_if_unknown_env_unknown
 test_exit_if_unknown_env_unknown_force_deploy
 test_create_docker_image_test
 test_create_docker_image_stage
+
+# WARNING: Dependent with stage docker build.
+test_create_docker_image_uat
+
+# WARNING: Dependent with uat docker build.
 test_create_docker_image_prod
-test_create_docker_image_pilot
+
 test_get_release_type_prod
 test_get_release_type_non_prod
 test_exit_if_non_production_release
 test_get_version
-test_get_version_from_pilot
-test_get_version_from_pilot_with_extra
+test_get_version_from_rc
+test_get_version_from_rc_with_extra
 test_exit_if_hotfix_ok
 test_exit_if_hotfix_not_ok

@@ -1,15 +1,5 @@
 #!/usr/bin/env bash
 
-# Remove first charater in a string and print the results into sdtout.
-# See the tests for usage example.
-# Deprecated: Use `get_version` instead.
-remove_1st () {
-  target=$1
-
-  res="${target:1}"
-  echo $res
-}
-
 # Validate required environment variables.
 # If any required environment variables is not provided an error message will
 # be printed in the stdout.
@@ -54,9 +44,15 @@ get_deployment_env () {
     exit 0
   fi
 
-  if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == v*-pilot ]]
+  if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == v*-rc ]]
   then
-    echo "pilot"
+    echo "uat"
+    exit 0
+  fi
+
+  if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == v*-* ]]
+  then
+    echo "unknown"
     exit 0
   fi
 
@@ -81,16 +77,20 @@ create_docker_image () {
     VERSION=$4
     SHORT_SHA=$5
     RELEASE_TAG=$6
+
     TAG=$VERSION-$SHORT_SHA
 
-    # We don't create a new docker image for production & piloting environment.
-    if [ "$ENV" != "prod" ] && [ "$ENV" != "pilot" ]
+    # We don't create a new docker image for production & uat environment.
+    if [ "$ENV" != "prod" ] && [ "$ENV" != "uat" ]
     then
         docker build -t $IMAGE .
         docker tag $IMAGE:latest $IMAGE:$TAG
         docker push $IMAGE:latest
 
         echo "$IMAGE:latest docker image pushed"
+
+        docker push $IMAGE:$TAG
+        echo "$IMAGE:$TAG docker image pushed"
     fi
 
     if [ "$ENV" == "stage" ]
@@ -99,28 +99,46 @@ create_docker_image () {
         docker push $IMAGE:beta
 
         echo "$IMAGE:beta docker image pushed"
+
+        docker push $IMAGE:$TAG
+        echo "$IMAGE:$TAG docker image pushed"
     fi
 
-    if [ "$ENV" == "prod" ] || [ "$ENV" == "pilot" ]
+    if [ "$ENV" == "uat" ]
     then
         TAG=$(get_version $RELEASE_TAG)
 
         # Pull beta docker image from staging.
-        docker pull $STAGE_IMAGE:beta
+        docker pull $STAGE_IMAGE
 
-        # Create production docker image tag from staging beta image.
-        docker tag $STAGE_IMAGE:beta $IMAGE:stable
-        docker tag $STAGE_IMAGE:beta $IMAGE:$TAG
+        # Create uat docker image tag from staging beta image.
+        docker tag $STAGE_IMAGE $IMAGE:$TAG-rc
+
+        # Push uat docker image.
+        docker push $IMAGE:$TAG-rc
+
+        echo "$IMAGE:$TAG-rc docker image pushed"
+    fi
+
+    if [ "$ENV" == "prod" ]
+    then
+        TAG=$(get_version $RELEASE_TAG)
+
+        # Pull release candidate docker image.
+        docker pull $IMAGE:$TAG-rc
+
+        # Create production docker image tag from release candidate image.
+        docker tag $IMAGE:$TAG-rc $IMAGE:stable
+        docker tag $IMAGE:$TAG-rc $IMAGE:$TAG
 
         # Push production stable docker image.
         docker push $IMAGE:stable
 
         echo "$IMAGE:stable docker image pushed"
+
+        docker push $IMAGE:$TAG
+        echo "$IMAGE:$TAG docker image pushed"
     fi
-
-    docker push $IMAGE:$TAG
-
-    echo "$IMAGE:$TAG docker image pushed"
 }
 
 # Exit if `ENV` is unknown or no target deployment environment identified.
@@ -170,7 +188,7 @@ get_version () {
     RELEASE_TAG=$1
     SPACE=""
 
-    echo "$RELEASE_TAG" | sed "s/-pilot/$SPACE/" | sed "s/v/$SPACE/"
+    echo "$RELEASE_TAG" | sed "s/-rc/$SPACE/" | sed "s/v/$SPACE/"
 }
 
 # Exit if `BRANCH` is a hotfix release.
