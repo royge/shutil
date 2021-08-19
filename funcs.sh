@@ -46,7 +46,7 @@ get_deployment_env () {
 
   if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == v*-rc ]]
   then
-    echo "uat"
+    echo "pilot"
     exit 0
   fi
 
@@ -80,8 +80,8 @@ create_docker_image () {
 
     TAG=$VERSION-$SHORT_SHA
 
-    # We don't create a new docker image for production & uat environment.
-    if [ "$ENV" != "prod" ] && [ "$ENV" != "uat" ]
+    # We don't create a new docker image for production & pilot environment.
+    if [ "$ENV" != "prod" ] && [ "$ENV" != "pilot" ]
     then
         docker build -t $IMAGE .
         docker tag $IMAGE:latest $IMAGE:$TAG
@@ -104,17 +104,17 @@ create_docker_image () {
         echo "$IMAGE:$TAG docker image pushed"
     fi
 
-    if [ "$ENV" == "uat" ]
+    if [ "$ENV" == "pilot" ]
     then
         TAG=$(get_version $RELEASE_TAG)
 
         # Pull beta docker image from staging.
         docker pull $STAGE_IMAGE
 
-        # Create uat docker image tag from staging beta image.
+        # Create pilot docker image tag from staging beta image.
         docker tag $STAGE_IMAGE $IMAGE:$TAG-rc
 
-        # Push uat docker image.
+        # Push pilot docker image.
         docker push $IMAGE:$TAG-rc
 
         echo "$IMAGE:$TAG-rc docker image pushed"

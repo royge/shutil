@@ -92,10 +92,10 @@ test_get_deployment_env_release_tag () {
   success
 }
 
-test_get_deployment_env_uat_release_tag () {
+test_get_deployment_env_pilot_release_tag () {
   echo "Testing get_deployment_env - rc tag"
   got=$(get_deployment_env v1.2.3-rc)
-  want=uat
+  want=pilot
 
   if [ "$want" != "$got" ]
   then
@@ -252,10 +252,10 @@ test_create_docker_image_stage () {
   success
 }
 
-test_create_docker_image_uat () {
-  echo "Testing create_docker_image - uat"
+test_create_docker_image_pilot () {
+  echo "Testing create_docker_image - pilot"
 
-  got=$(create_docker_image "uat" "royge/shutil" "royge/shutil:beta" "1.0.0" "fg3rf23d" "v1.0.0-rc")
+  got=$(create_docker_image "pilot" "royge/shutil" "royge/shutil:beta" "1.0.0" "fg3rf23d" "v1.0.0-rc")
 
   want="royge/shutil:1.0.0-rc docker image pushed"
   if [[ "$got" != *"$want"* ]]
@@ -403,7 +403,7 @@ test_validate_envs_invalid
 test_get_deployment_env_develop_branch
 test_get_deployment_env_release_branch
 test_get_deployment_env_release_tag
-test_get_deployment_env_uat_release_tag
+test_get_deployment_env_pilot_release_tag
 test_get_deployment_env_pre_release_tag
 test_get_deployment_env_unknown
 test_get_deployment_env_feature_branch
@@ -416,9 +416,9 @@ test_create_docker_image_test
 test_create_docker_image_stage
 
 # WARNING: Dependent with stage docker build.
-test_create_docker_image_uat
+test_create_docker_image_pilot
 
-# WARNING: Dependent with uat docker build.
+# WARNING: Dependent with pilot docker build.
 test_create_docker_image_prod
 
 test_get_release_type_prod
