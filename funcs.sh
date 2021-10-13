@@ -211,22 +211,24 @@ deployment_cleanup () {
   local app_name=$3
   local other_file=$4
 
-  [ -z "$script_dir_name" ] && echo "provide the 'scripts' directory" && exit 1;
-  [ -z "$app_name" ] && echo "provide the '.bin/go-build' file" && exit 1;
-  [ -z "$other_file" ] && echo "See Dockerfile for other files included during docker-build" && exit 1;
+  if [[ $build_id != "" ]];
+  then
+    [ -z "$script_dir_name" ] && echo "provide the 'scripts' directory" && exit 1;
+    [ -z "$app_name" ] && echo "provide the 'app_name/go-build' file" && exit 1;
+    [ -z "$other_file" ] && echo "See Dockerfile for other files included during docker-build" && exit 1;
 
-  if [[ $build_id != "" ]] ;then
-      for dir in $(ls); do
-          if [[ $dir != $script_dir_name ]] &&
-             [[ $dir != $app_name ]] &&
-             [[ $dir != "Dockerfile" ]] &&
-             [[ $dir != $other_file ]];
-          then
-              rm -rf $dir
-          fi
-      done
-      echo "cleanup done"
-      exit 0
+    for dir in $(ls); do
+        if [[ $dir != $script_dir_name ]] &&
+          [[ $dir != $app_name ]] &&
+          [[ $dir != "Dockerfile" ]] &&
+          [[ $dir != $other_file ]];
+        then
+          rm -rf $dir
+        fi
+    done
+
+    echo "cleanup done"
+    exit 0
   else
     echo "cleaning up is possible if substitution BUILD_ID is supplied" 
     exit 0

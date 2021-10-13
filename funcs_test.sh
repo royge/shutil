@@ -400,7 +400,7 @@ test_exit_if_hotfix_not_ok () {
 
 test_deployment_cleanup_without_all_parameters () {
   echo "Testing deployment_cleanup - without all parameters '' '' '' ''"
-  want="provide the 'scripts' directory"
+  want="cleaning up is possible if substitution BUILD_ID is supplied"
   got=$(deployment_cleanup "" "" "" "")
 
   if [ "$want" != "$got" ]
@@ -440,7 +440,7 @@ test_deployment_cleanup_without_script_dir () {
 
 test_deployment_cleanup_without_app_bin () {
   echo "Testing deployment_cleanup - without app bin 'scripts' 'abc-1234' '' 'dummy.txt'"
-  want="provide the '.bin/go-build' file"
+  want="provide the 'app_name/go-build' file"
   got=$(deployment_cleanup "scripts" "abc-1234" "" "dummy.txt")
 
   if [ "$want" != "$got" ]
