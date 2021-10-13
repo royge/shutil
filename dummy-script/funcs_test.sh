@@ -398,23 +398,9 @@ test_exit_if_hotfix_not_ok () {
   success
 }
 
-test_deployment_cleanup_without_script_dir_build_id () {
-  echo "Testing deployment_cleanup - deployment_cleanup '' ''"
-  want="provide the 'scripts' directory"
-  got=$(deployment_cleanup "" "")
-
-  if [ "$want" != "$got" ]
-  then
-    failure "$want" "$got"
-  fi
-
-  success
-}
-
-test_deployment_cleanup_without_build_id () {
-  echo "Testing deployment_cleanup - deployment_cleanup 'dummy-script' ''"
-  want="cleaning up is possible if substitution BUILD_ID is supplied"
-  got=$(deployment_cleanup "dummy-script" "")
+test_cleanup_without_build_id () {
+  want="Cleaning up is possible when substitution BUILD_ID is supplied"
+  got=$(cleanup "copy-files" "")
 
  
   if [ "$want" != "$got" ]
@@ -425,11 +411,11 @@ test_deployment_cleanup_without_build_id () {
   success
 }
 
-test_deployment_cleanup_without_script_dir () {
-  echo "Testing deployment_cleanup - deployment_cleanup '' 'abc-1234'"
-  want="provide the 'scripts' directory"
-  got=$(deployment_cleanup "" "abc-1234")
+test_cleanup_without_script_dir () {
+  want="provide the script directory"
+  got=$(cleanup "" "")
 
+ 
   if [ "$want" != "$got" ]
   then
     failure "$want" "$got"
@@ -438,12 +424,11 @@ test_deployment_cleanup_without_script_dir () {
   success
 }
 
-# See warning comments below (line 491) before executing the test.
-test_deployment_cleanup_with_id_build_id () {
-  echo "Testing deployment_cleanup - deployment_cleanup 'dummy-script' 'sdf123'"
+test_cleanup_with_id () {
   want="cleanup done"
-  got=$(deployment_cleanup "dummy-script" "sdf123")
+  got=$(cleanup "copy-files" "sdf123")
 
+ 
   if [ "$want" != "$got" ]
   then
     failure "$want" "$got"
@@ -452,42 +437,38 @@ test_deployment_cleanup_with_id_build_id () {
   success
 }
 
-test_validate_envs_valid
-test_validate_envs_invalid
-test_get_deployment_env_develop_branch
-test_get_deployment_env_release_branch
-test_get_deployment_env_release_tag
-test_get_deployment_env_pilot_release_tag
-test_get_deployment_env_pre_release_tag
-test_get_deployment_env_unknown
-test_get_deployment_env_feature_branch
-test_get_deployment_env_hotfix_branch
-test_get_deployment_env_bugfix_branch
-test_exit_if_unknown_env_test
-test_exit_if_unknown_env_unknown
-test_exit_if_unknown_env_unknown_force_deploy
-test_create_docker_image_test
-test_create_docker_image_stage
+# test_validate_envs_valid
+# test_validate_envs_invalid
+# test_get_deployment_env_develop_branch
+# test_get_deployment_env_release_branch
+# test_get_deployment_env_release_tag
+# test_get_deployment_env_pilot_release_tag
+# test_get_deployment_env_pre_release_tag
+# test_get_deployment_env_unknown
+# test_get_deployment_env_feature_branch
+# test_get_deployment_env_hotfix_branch
+# test_get_deployment_env_bugfix_branch
+# test_exit_if_unknown_env_test
+# test_exit_if_unknown_env_unknown
+# test_exit_if_unknown_env_unknown_force_deploy
+# test_create_docker_image_test
+# test_create_docker_image_stage
 
-# WARNING: Dependent with stage docker build.
-test_create_docker_image_pilot
+# # WARNING: Dependent with stage docker build.
+# test_create_docker_image_pilot
 
-# WARNING: Dependent with pilot docker build.
-test_create_docker_image_prod
+# # WARNING: Dependent with pilot docker build.
+# test_create_docker_image_prod
 
-test_get_release_type_prod
-test_get_release_type_non_prod
-test_exit_if_non_production_release
-test_get_version
-test_get_version_from_rc
-test_get_version_from_rc_with_extra
-test_exit_if_hotfix_ok
-test_exit_if_hotfix_not_ok
+# test_get_release_type_prod
+# test_get_release_type_non_prod
+# test_exit_if_non_production_release
+# test_get_version
+# test_get_version_from_rc
+# test_get_version_from_rc_with_extra
+# test_exit_if_hotfix_ok
+# test_exit_if_hotfix_not_ok
 
-test_deployment_cleanup_without_script_dir_build_id
-test_deployment_cleanup_without_build_id
-test_deployment_cleanup_without_script_dir
-
-# WARNING: This will remove all the files except "scripts"
-# create a directory called "dummy-script" then copy the entire files inside it.
-# test_deployment_cleanup_with_id_build_id
+test_cleanup_without_build_id
+test_cleanup_without_script_dir
+test_cleanup_with_id

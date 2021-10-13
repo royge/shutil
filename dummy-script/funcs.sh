@@ -203,24 +203,22 @@ exit_if_hotfix () {
     fi
 }
 
-
-# WARNING! Please be careful about positional arguments.
-deployment_cleanup () {
+cleanup () {
   local script_dir_name=$1
   local build_id=$2
 
-  [ -z "$script_dir_name" ] && echo "provide the 'scripts' directory" && exit 1;
+  [ -z "$script_dir_name" ] && echo "provide the script directory" && exit 1;
 
   if [[ $build_id != "" ]] ;then
       for dir in $(ls); do
           if [[ $dir != $script_dir_name ]]; then
               rm -rf $dir
           fi
-      done
+      done 
       echo "cleanup done"
       exit 0
   else
-    echo "cleaning up is possible if substitution BUILD_ID is supplied" 
+    echo "Cleaning up is possible when substitution BUILD_ID is supplied" 
     exit 0
   fi
 }
