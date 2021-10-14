@@ -228,9 +228,7 @@ deployment_cleanup () {
     done
 
     echo "cleanup done"
-    exit 0
   else
     echo "cleaning up is possible if substitution BUILD_ID is supplied" 
-    exit 0
   fi
 }
