@@ -202,3 +202,27 @@ exit_if_hotfix () {
         exit 0
     fi
 }
+
+# NOTE: See tests for usage example
+cleanup () {
+    local target=$1
+    local excludes=$(echo $2 | tr "," " ")
+
+    [ -z "$target" ] && echo "provide the 'target' directory" && exit 1;
+
+    for item in $(ls $target); do
+        found="no"
+        for v in $excludes; do
+            if [[ $item == $v ]]; then
+                found="yes"
+                break
+            fi
+        done
+
+        if [[ $found == "no" ]]; then
+            rm -rf "$target/$item"
+        fi
+    done
+
+    echo "cleanup done"
+}

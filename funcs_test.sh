@@ -398,6 +398,64 @@ test_exit_if_hotfix_not_ok () {
   success
 }
 
+test_cleanup () {
+  echo "Testing cleanup"
+
+  testdir=/tmp/shutiltest
+
+  mkdir -p $testdir
+
+  mkdir -p "$testdir/scripts"
+  mkdir -p "$testdir/k8s"
+  mkdir -p "$testdir/others"
+  touch "$testdir/dummy.txt"
+  touch "$testdir/others/sample.txt"
+
+  contents=$(ls $testdir)
+  contents=$(echo "$contents" | tr '\r\n' ' ')
+  if [[ $contents != "dummy.txt k8s others scripts " ]]; then
+    >&2 echo "FAILURE!!! unable to prepare test"
+    exit 1
+  fi
+
+  contents=$(ls "$testdir/others")
+  if [[ $contents != "sample.txt" ]]; then
+    >&2 echo "FAILURE!!! unable to prepare test file"
+    exit 1
+  fi
+
+  cleanup $testdir scripts,k8s
+  contents=$(ls $testdir)
+
+  want="k8s scripts "
+  got=$(echo "$contents" | tr '\r\n' ' ')
+  if [[ $got != $want ]]; then
+    failure "$want" "$got"
+  fi
+
+  cleanup $testdir scripts
+  contents=$(ls $testdir)
+
+  want="scripts "
+  got=$(echo "$contents" | tr '\r\n' ' ')
+  if [[ $got != $want ]]; then
+    failure "$want" "$got"
+  fi
+
+  cleanup $testdir
+  contents=$(ls $testdir)
+
+  want=" "
+  got=$(echo "$contents" | tr '\r\n' ' ')
+  if [[ $got != $want ]]; then
+    failure "$want" "$got"
+  fi
+
+  rm -rf $testdir
+
+  success
+}
+
 test_validate_envs_valid
 test_validate_envs_invalid
 test_get_deployment_env_develop_branch
@@ -429,3 +487,5 @@ test_get_version_from_rc
 test_get_version_from_rc_with_extra
 test_exit_if_hotfix_ok
 test_exit_if_hotfix_not_ok
+
+test_cleanup
