@@ -44,12 +44,6 @@ get_deployment_env () {
     exit 0
   fi
 
-  if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == v*-rc ]]
-  then
-    echo "pilot"
-    exit 0
-  fi
-
   if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == v*-* ]]
   then
     echo "unknown"
@@ -80,8 +74,8 @@ create_docker_image () {
 
     TAG=$VERSION-$SHORT_SHA
 
-    # We don't create a new docker image for production & pilot environment.
-    if [ "$ENV" != "prod" ] && [ "$ENV" != "pilot" ]
+    # We don't create a new docker image for production environment.
+    if [ "$ENV" != "prod" ]
     then
         docker build -t $IMAGE .
         docker tag $IMAGE:latest $IMAGE:$TAG
@@ -96,7 +90,9 @@ create_docker_image () {
     if [ "$ENV" == "stage" ]
     then
         docker tag $IMAGE:latest $IMAGE:beta
+        docker tag $IMAGE:latest $IMAGE:$VERSION-beta
         docker push $IMAGE:beta
+        docker push $IMAGE:$VERSION-beta
 
         echo "$IMAGE:beta docker image pushed"
 
@@ -104,32 +100,16 @@ create_docker_image () {
         echo "$IMAGE:$TAG docker image pushed"
     fi
 
-    if [ "$ENV" == "pilot" ]
-    then
-        TAG=$(get_version $RELEASE_TAG)
-
-        # Pull beta docker image from staging.
-        docker pull $STAGE_IMAGE
-
-        # Create pilot docker image tag from staging beta image.
-        docker tag $STAGE_IMAGE $IMAGE:$TAG-rc
-
-        # Push pilot docker image.
-        docker push $IMAGE:$TAG-rc
-
-        echo "$IMAGE:$TAG-rc docker image pushed"
-    fi
-
     if [ "$ENV" == "prod" ]
     then
         TAG=$(get_version $RELEASE_TAG)
 
-        # Pull release candidate docker image.
-        docker pull $IMAGE:$TAG-rc
+        # Pull beta docker image.
+        docker pull $STAGE_IMAGE:$TAG-beta
 
         # Create production docker image tag from release candidate image.
-        docker tag $IMAGE:$TAG-rc $IMAGE:stable
-        docker tag $IMAGE:$TAG-rc $IMAGE:$TAG
+        docker tag $STAGE_IMAGE:$TAG-beta $IMAGE:stable
+        docker tag $STAGE_IMAGE:$TAG-beta $IMAGE:$TAG
 
         # Push production stable docker image.
         docker push $IMAGE:stable
