@@ -157,6 +157,19 @@ test_get_deployment_env_bugfix_branch () {
   success
 }
 
+test_get_deployment_hotfix_release_branch () {
+  echo "Testing get_deployment_env - hotfix release branch"
+  got=$(get_deployment_env hotfix/v1.2.3)
+  want=prod
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
 test_exit_if_unknown_env_test () {
   echo "Testing exit_if_unknown_env - test"
 
@@ -439,6 +452,7 @@ test_get_deployment_env_unknown
 test_get_deployment_env_feature_branch
 test_get_deployment_env_hotfix_branch
 test_get_deployment_env_bugfix_branch
+test_get_deployment_hotfix_release_branch
 test_exit_if_unknown_env_test
 test_exit_if_unknown_env_unknown
 test_exit_if_unknown_env_unknown_force_deploy

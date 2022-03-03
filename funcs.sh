@@ -50,6 +50,12 @@ get_deployment_env () {
     exit 0
   fi
 
+  if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == hotfix/v* ]]
+  then
+    echo "prod"
+    exit 0
+  fi
+
   if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == v* ]]
   then
     echo "prod"
@@ -105,11 +111,11 @@ create_docker_image () {
         TAG=$(get_version $RELEASE_TAG)
 
         # Pull beta docker image.
-        docker pull $STAGE_IMAGE:$TAG-beta
+        docker pull $RELEASE_IMAGE:$TAG-rc
 
         # Create production docker image tag from release candidate image.
-        docker tag $STAGE_IMAGE:$TAG-beta $IMAGE:stable
-        docker tag $STAGE_IMAGE:$TAG-beta $IMAGE:$TAG
+        docker tag $RELEASE_IMAGE:$TAG-rc $IMAGE:stable
+        docker tag $RELEASE_IMAGE:$TAG-rc $IMAGE:$TAG
 
         # Push production stable docker image.
         docker push $IMAGE:stable
