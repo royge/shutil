@@ -95,7 +95,7 @@ test_get_deployment_env_release_tag () {
 test_get_deployment_env_pre_release_tag () {
   echo "Testing get_deployment_env - pre-release tag"
   got=$(get_deployment_env v1.2.3-65)
-  want=unknown
+  want=stage
 
   if [ "$want" != "$got" ]
   then
@@ -272,6 +272,40 @@ test_create_docker_image_prod () {
   success
 }
 
+test_create_docker_image_prod_unknown_release () {
+  echo "Testing create_docker_image - prod (unknown release)"
+
+  got=$(create_docker_image "prod" "royge/shutil" "royge/unknown" "1.0.0" "fg3rf23d" "v1.0.0")
+
+  want="royge/shutil:stable docker image pushed"
+  if [[ "$got" != *"$want"* ]]
+  then
+    failure "$want" "$got"
+  fi
+
+  want="royge/shutil:1.0.0 docker image pushed"
+  if [[ "$got" != *"$want"* ]]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
+test_create_docker_image_prod_hotfix () {
+  echo "Testing create_docker_image - prod hotfix"
+
+  got=$(create_docker_image "prod" "royge/shutil" "royge/shutil" "1.0.1" "fg3rf23d" "hotfix/v1.0.1")
+
+  want="royge/shutil:1.0.1-rc docker image pushed"
+  if [[ "$got" != *"$want"* ]]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
 test_get_release_type_prod () {
   echo "Testing get_release_type - prod"
 
@@ -347,6 +381,34 @@ test_get_version_from_rc_with_extra () {
 
   want="1.1.34-67"
   got=$(get_version "v1.1.34-67-rc")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
+test_get_version_from_hotfix () {
+  echo "Testing get_version - hotfix/v1.1.34"
+
+  want="1.1.34"
+  got=$(get_version "hotfix/v1.1.34")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
+test_get_version_from_release () {
+  echo "Testing get_version - release/v1.2.34"
+
+  want="1.2.34"
+  got=$(get_version "release/v1.2.34")
 
   if [ "$want" != "$got" ]
   then
@@ -442,6 +504,111 @@ test_cleanup () {
   success
 }
 
+test_get_branch_type_feature () {
+  echo "Testing get_branch_type - feature"
+
+  want="feature"
+  got=$(get_branch_type "feature/ABC-1234")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
+test_get_branch_type_release () {
+  echo "Testing get_branch_type - release"
+
+  want="release"
+  got=$(get_branch_type "release/v.1.2.3")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
+test_get_branch_type_hotfix () {
+  echo "Testing get_branch_type - hotfix"
+
+  want="hotfix"
+  got=$(get_branch_type "hotfix/v.1.2.4")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
+test_get_branch_type_unknowns () {
+    echo "Testing get_branch_type - unknown(s)"
+
+  want="unknown"
+  got=$(get_branch_type "")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  got=$(get_branch_type "feature")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  got=$(get_branch_type "release")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  got=$(get_branch_type "hotfix")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  got=$(get_branch_type "feature-")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  got=$(get_branch_type "release-")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  got=$(get_branch_type "hotfix-")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  got=$(get_branch_type "v1.2.3")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  success
+}
+
 test_validate_envs_valid
 test_validate_envs_invalid
 test_get_deployment_env_develop_branch
@@ -461,6 +628,8 @@ test_create_docker_image_stage
 
 # WARNING: Dependent with stage docker build.
 test_create_docker_image_prod
+test_create_docker_image_prod_unknown_release
+test_create_docker_image_prod_hotfix
 
 test_get_release_type_prod
 test_get_release_type_non_prod
@@ -468,7 +637,13 @@ test_exit_if_non_production_release
 test_get_version
 test_get_version_from_rc
 test_get_version_from_rc_with_extra
+test_get_version_from_hotfix
+test_get_version_from_release
 test_exit_if_hotfix_ok
 test_exit_if_hotfix_not_ok
 
 test_cleanup
+test_get_branch_type_feature
+test_get_branch_type_release
+test_get_branch_type_hotfix
+test_get_branch_type_unknowns

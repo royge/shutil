@@ -46,7 +46,7 @@ get_deployment_env () {
 
   if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == v*-* ]]
   then
-    echo "unknown"
+    echo "stage"
     exit 0
   fi
 
@@ -73,10 +73,10 @@ get_deployment_env () {
 create_docker_image () {
     ENV=$1
     IMAGE=$2
-    STAGE_IMAGE=$3
+    RELEASE_IMAGE=$3
     VERSION=$4
     SHORT_SHA=$5
-    RELEASE_TAG=$6
+    BRANCH_OR_TAG=$6
 
     TAG=$VERSION-$SHORT_SHA
 
@@ -102,20 +102,46 @@ create_docker_image () {
 
         echo "$IMAGE:beta docker image pushed"
 
+        # Pre-release tag will create a release candidate docker image.
+        if [[ "$BRANCH_OR_TAG" == v*-* ]]
+        then
+            docker tag $IMAGE:latest $IMAGE:$VERSION-rc
+            docker push $IMAGE:$VERSION-rc
+        fi
+
         docker push $IMAGE:$TAG
         echo "$IMAGE:$TAG docker image pushed"
     fi
 
     if [ "$ENV" == "prod" ]
     then
-        TAG=$(get_version $RELEASE_TAG)
+        TAG=$(get_version $BRANCH_OR_TAG)
 
-        # Pull beta docker image.
-        docker pull $RELEASE_IMAGE:$TAG-rc
+        BRANCH_TYPE=$(get_branch_type $BRANCH_OR_TAG)
+        if [ "$BRANCH_TYPE" == "hotfix" ]
+        then
+            docker build -t $IMAGE .
+            docker tag $IMAGE:latest $IMAGE:$TAG-rc
+
+            docker push $IMAGE:$TAG-rc
+            echo "$IMAGE:$TAG-rc docker image pushed"
+            exit 0
+        fi
+
+        STATUS=$?
+
+        # Pull release candidate docker image.
+        docker pull $RELEASE_IMAGE:$TAG-rc 2> /dev/null
+
+        if [ $STATUS -eq 1 ]
+        then
+            # Try another one because this could from a hotfix.
+            docker pull $IMAGE:$TAG-rc
+        fi
 
         # Create production docker image tag from release candidate image.
-        docker tag $RELEASE_IMAGE:$TAG-rc $IMAGE:stable
-        docker tag $RELEASE_IMAGE:$TAG-rc $IMAGE:$TAG
+        docker tag $IMAGE:$TAG-rc $IMAGE:stable
+        docker tag $IMAGE:$TAG-rc $IMAGE:$TAG
 
         # Push production stable docker image.
         docker push $IMAGE:stable
@@ -171,10 +197,14 @@ exit_if_non_production_release () {
 
 # NOTE: See tests for usage examples.
 get_version () {
-    RELEASE_TAG=$1
+    BRANCH_OR_TAG=$1
     SPACE=""
 
-    echo "$RELEASE_TAG" | sed "s/-rc/$SPACE/" | sed "s/v/$SPACE/"
+    echo "$BRANCH_OR_TAG" | \
+        sed "s/-rc/$SPACE/" | \
+        sed "s/v/$SPACE/" | \
+        sed "s/hotfix\//$SPACE/" | \
+        sed "s/release\//$SPACE/"
 }
 
 # Exit if `BRANCH` is a hotfix release.
@@ -211,4 +241,28 @@ cleanup () {
     done
 
     echo "cleanup done"
+}
+
+get_branch_type () {
+    BRANCH=$1
+
+    if [[ "$BRANCH" == feature/* ]]
+    then
+        echo "feature"
+        exit 0
+    fi
+
+    if [[ "$BRANCH" == release/* ]]
+    then
+        echo "release"
+        exit 0
+    fi
+
+    if [[ "$BRANCH" == hotfix/* ]]
+    then
+        echo "hotfix"
+        exit 0
+    fi
+
+    echo "unknown"
 }
