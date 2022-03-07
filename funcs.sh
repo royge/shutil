@@ -58,7 +58,7 @@ get_deployment_env () {
 
   if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == hotfix/v* ]]
   then
-    echo "prod"
+    echo "stage"
     exit 0
   fi
 
@@ -134,16 +134,9 @@ create_docker_image () {
             echo "$IMAGE:$TAG-rc docker image pushed"
         fi
 
-        docker push $IMAGE:$TAG
-        echo "$IMAGE:$TAG docker image pushed"
-    fi
-
-    if [ "$ENV" == "prod" ]
-    then
         BRANCH_TYPE=$(get_branch_type $BRANCH_OR_TAG)
         if [ "$BRANCH_TYPE" == "hotfix" ]
         then
-            docker build -t $IMAGE .
             docker tag $IMAGE:latest $IMAGE:$TAG-rc
 
             docker push $IMAGE:$TAG-rc
@@ -151,16 +144,17 @@ create_docker_image () {
             exit 0
         fi
 
-        # Try to pull release candidate docker image.
-        if ! docker pull $RELEASE_IMAGE:$TAG-rc > /dev/null 2>&1
-        then
-            # Try another one because this could be from a hotfix.
-            docker pull $IMAGE:$TAG-rc
-        fi
+        docker push $IMAGE:$TAG
+        echo "$IMAGE:$TAG docker image pushed"
+    fi
+
+    if [ "$ENV" == "prod" ]
+    then
+        docker pull $RELEASE_IMAGE:$TAG-rc
 
         # Create production docker image tag from release candidate image.
-        docker tag $IMAGE:$TAG-rc $IMAGE:stable
-        docker tag $IMAGE:$TAG-rc $IMAGE:$TAG
+        docker tag $RELEASE_IMAGE:$TAG-rc $IMAGE:stable
+        docker tag $RELEASE_IMAGE:$TAG-rc $IMAGE:$TAG
 
         # Push production stable docker image.
         docker push $IMAGE:stable
