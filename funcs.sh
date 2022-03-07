@@ -234,7 +234,7 @@ get_version () {
 exit_if_hotfix () {
     BRANCH=$1
 
-    if [[ "$BRANCH" == release/v*-hotfix ]]
+    if [[ "$BRANCH" == hotfix/v* ]]
     then
         echo "INFO: hotfix release"
         exit 0

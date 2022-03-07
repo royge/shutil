@@ -444,10 +444,10 @@ test_get_version_from_unknowns () {
 }
 
 test_exit_if_hotfix_ok () {
-  echo "Testing exit_if_hotfix - release/v1.2.3-hotfix"
+  echo "Testing exit_if_hotfix - hotfix/v1.2.3"
 
   want="INFO: hotfix release"
-  got=$(exit_if_hotfix "release/v1.2.3-hotfix")
+  got=$(exit_if_hotfix "hotfix/v1.2.3")
 
   if [ "$want" != "$got" ]
   then
@@ -458,10 +458,10 @@ test_exit_if_hotfix_ok () {
 }
 
 test_exit_if_hotfix_not_ok () {
-  echo "Testing exit_if_hotfix - release/hotfix-1234"
+  echo "Testing exit_if_hotfix - hotfix-1234"
 
   want=""
-  got=$(exit_if_hotfix "release/hotfix-1234")
+  got=$(exit_if_hotfix "hotfix-1234")
 
   if [ "$want" != "$got" ]
   then
