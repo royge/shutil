@@ -44,9 +44,15 @@ get_deployment_env () {
     exit 0
   fi
 
-  if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == v*-* ]]
+  if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == v*-rc ]]
   then
     echo "stage"
+    exit 0
+  fi
+
+  if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == v*-* ]]
+  then
+    echo "unknown"
     exit 0
   fi
 
@@ -78,11 +84,23 @@ create_docker_image () {
     SHORT_SHA=$5
     BRANCH_OR_TAG=$6
 
-    TAG=$VERSION-$SHORT_SHA
+    # Check if docker daemon is running.
+    # Credits to: https://stackoverflow.com/a/55283209
+    if ! docker info > /dev/null 2>&1; then
+      echo "This script uses docker, and it isn't running - please start docker and try again!"
+      exit 1
+    fi
 
-    # We don't create a new docker image for production environment.
+    TAG=$(get_version $BRANCH_OR_TAG)
+
+    # We don't create a new docker image for production environment except
+    # for hotfix.
     if [ "$ENV" != "prod" ]
     then
+        if [ "$TAG" == "unknown" ]; then
+            TAG=$VERSION-$SHORT_SHA
+        fi
+
         docker build -t $IMAGE .
         docker tag $IMAGE:latest $IMAGE:$TAG
         docker push $IMAGE:latest
@@ -95,18 +113,25 @@ create_docker_image () {
 
     if [ "$ENV" == "stage" ]
     then
+        if [ "$TAG" == "" ]; then
+            echo "Invalid release branch name. Please follow this pattern release/v1.2.3 in your branch name."
+            exit 1
+        fi
+
         docker tag $IMAGE:latest $IMAGE:beta
-        docker tag $IMAGE:latest $IMAGE:$VERSION-beta
+        docker tag $IMAGE:latest $IMAGE:$TAG-beta
         docker push $IMAGE:beta
-        docker push $IMAGE:$VERSION-beta
+        docker push $IMAGE:$TAG-beta
 
         echo "$IMAGE:beta docker image pushed"
 
-        # Pre-release tag will create a release candidate docker image.
-        if [[ "$BRANCH_OR_TAG" == v*-* ]]
+        # Release candidate tag will create a release candidate docker image.
+        if [[ "$BRANCH_OR_TAG" == v*-rc ]]
         then
-            docker tag $IMAGE:latest $IMAGE:$VERSION-rc
-            docker push $IMAGE:$VERSION-rc
+            docker tag $IMAGE:latest $IMAGE:$TAG-rc
+            docker push $IMAGE:$TAG-rc
+
+            echo "$IMAGE:$TAG-rc docker image pushed"
         fi
 
         docker push $IMAGE:$TAG
@@ -115,8 +140,6 @@ create_docker_image () {
 
     if [ "$ENV" == "prod" ]
     then
-        TAG=$(get_version $BRANCH_OR_TAG)
-
         BRANCH_TYPE=$(get_branch_type $BRANCH_OR_TAG)
         if [ "$BRANCH_TYPE" == "hotfix" ]
         then
@@ -128,14 +151,10 @@ create_docker_image () {
             exit 0
         fi
 
-        STATUS=$?
-
-        # Pull release candidate docker image.
-        docker pull $RELEASE_IMAGE:$TAG-rc 2> /dev/null
-
-        if [ $STATUS -eq 1 ]
+        # Try to pull release candidate docker image.
+        if ! docker pull $RELEASE_IMAGE:$TAG-rc > /dev/null 2>&1
         then
-            # Try another one because this could from a hotfix.
+            # Try another one because this could be from a hotfix.
             docker pull $IMAGE:$TAG-rc
         fi
 
@@ -199,6 +218,15 @@ exit_if_non_production_release () {
 get_version () {
     BRANCH_OR_TAG=$1
     SPACE=""
+
+    if [[ "$BRANCH_OR_TAG" != v*-rc ]] && \
+        [[ "$BRANCH_OR_TAG" != v* ]] && \
+        [[ "$BRANCH_OR_TAG" != hotfix/v* ]] && \
+        [[ "$BRANCH_OR_TAG" != release/v* ]]
+        then
+            echo "unknown"
+            exit 0
+    fi
 
     echo "$BRANCH_OR_TAG" | \
         sed "s/-rc/$SPACE/" | \
