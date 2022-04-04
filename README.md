@@ -1,5 +1,5 @@
 # My utility shell scripts
 
-[![Build Status](https://travis-ci.org/royge/shutil.svg?branch=main)](https://travis-ci.org/royge/shutil)
+![CI](https://github.com/royge/shutil/actions/workflows/main.yml/badge.svg)
 
 See `funcs_test.sh` for more usage examples.
