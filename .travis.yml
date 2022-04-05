@@ -1,8 +1,0 @@
-language: bash
-
-services:
-  - docker
-
-script:
-  - echo "$DOCKER_ACCESS_TOKEN" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - chmod u+x funcs_test.sh && ./funcs_test.sh
