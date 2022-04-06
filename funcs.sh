@@ -128,15 +128,15 @@ create_docker_image () {
             docker push $IMAGE:$TAG-beta
 
             echo "$IMAGE:beta docker image pushed"
-        fi
 
-        # Release candidate tag will create a release candidate docker image.
-        if [[ "$BRANCH_OR_TAG" == v*-rc ]]
-        then
-            docker tag $IMAGE:latest $IMAGE:$TAG-rc
-            docker push $IMAGE:$TAG-rc
+            # Release candidate branch will create a release candidate docker image.
+            if [[ "$BRANCH_OR_TAG" == release/v*-rc ]]
+            then
+                docker tag $IMAGE:latest $IMAGE:$TAG-rc
+                docker push $IMAGE:$TAG-rc
 
-            echo "$IMAGE:$TAG-rc docker image pushed"
+                echo "$IMAGE:$TAG-rc docker image pushed"
+            fi
         fi
 
         if [ "$BRANCH_TYPE" == "hotfix" ]

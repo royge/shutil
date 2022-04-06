@@ -250,7 +250,7 @@ test_create_docker_image_stage () {
     failure "$want" "$got"
   fi
 
-  got=$(create_docker_image "stage" "royge/shutil" "royge/shutil" "1.0.1" "fg3rf23d" "v1.0.1-rc")
+  got=$(create_docker_image "stage" "royge/shutil" "royge/shutil" "1.0.1" "fg3rf23d" "release/v1.0.1-rc")
 
   want="royge/shutil:1.0.1-rc docker image pushed"
   if [[ "$got" != *"$want"* ]]
