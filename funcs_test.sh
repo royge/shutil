@@ -56,6 +56,20 @@ test_get_deployment_env_develop_branch () {
   echo "Testing get_deployment_env - develop branch"
   branch=develop
   got=$(get_deployment_env $branch)
+  want=unknown
+
+  if [ "$want" != "$got" ]
+  then
+    failure $want $got
+  fi
+
+  success
+}
+
+test_get_deployment_env_develop_branch () {
+  echo "Testing get_deployment_env - main branch"
+  branch=main
+  got=$(get_deployment_env $branch)
   want=test
 
   if [ "$want" != "$got" ]
@@ -83,19 +97,6 @@ test_get_deployment_env_release_tag () {
   echo "Testing get_deployment_env - release tag"
   got=$(get_deployment_env v1.2.3)
   want=prod
-
-  if [ "$want" != "$got" ]
-  then
-    failure "$want" "$got"
-  fi
-
-  success
-}
-
-test_get_deployment_env_release_candidate_tag () {
-  echo "Testing get_deployment_env - release candidate tag"
-  got=$(get_deployment_env v1.2.3-rc)
-  want=stage
 
   if [ "$want" != "$got" ]
   then
@@ -138,36 +139,10 @@ test_get_deployment_env_feature_branch () {
   success
 }
 
-test_get_deployment_env_hotfix_branch () {
-  echo "Testing get_deployment_env - hotfix branch"
-  got=$(get_deployment_env hotfix/FE-1234-testing)
-  want=unknown
-
-  if [ "$want" != "$got" ]
-  then
-    failure "$want" "$got"
-  fi
-
-  success
-}
-
 test_get_deployment_env_bugfix_branch () {
   echo "Testing get_deployment_env - bugfix branch"
   got=$(get_deployment_env bugfix/FE-1234-testing)
   want=unknown
-
-  if [ "$want" != "$got" ]
-  then
-    failure "$want" "$got"
-  fi
-
-  success
-}
-
-test_get_deployment_hotfix_release_branch () {
-  echo "Testing get_deployment_env - hotfix release branch"
-  got=$(get_deployment_env hotfix/v1.2.3)
-  want=stage
 
   if [ "$want" != "$got" ]
   then
@@ -222,7 +197,7 @@ test_exit_if_unknown_env_unknown_force_deploy () {
 test_create_docker_image_test () {
   echo "Testing create_docker_image - test"
 
-  got=$(create_docker_image "test" "royge/shutil" "royge/shutil" "1.0.0" "fg3rf23d" "develop")
+  got=$(create_docker_image "test" "royge/shutil" "royge/shutil" "1.0.0" "fg3rf23d" "main")
 
   want="royge/shutil:latest docker image pushed"
   if [[ "$got" != *"$want"* ]]
@@ -250,9 +225,7 @@ test_create_docker_image_stage () {
     failure "$want" "$got"
   fi
 
-  got=$(create_docker_image "stage" "royge/shutil" "royge/shutil" "1.0.1" "fg3rf23d" "release/v1.0.1-rc")
-
-  want="royge/shutil:1.0.1-rc docker image pushed"
+  want="royge/shutil:1.0.0 docker image pushed"
   if [[ "$got" != *"$want"* ]]
   then
     failure "$want" "$got"
@@ -273,20 +246,6 @@ test_create_docker_image_prod () {
   fi
 
   want="royge/shutil:1.0.0 docker image pushed"
-  if [[ "$got" != *"$want"* ]]
-  then
-    failure "$want" "$got"
-  fi
-
-  success
-}
-
-test_create_docker_image_stage_hotfix () {
-  echo "Testing create_docker_image - stage hotfix"
-
-  got=$(create_docker_image "stage" "royge/shutil" "royge/shutil" "1.0.1" "fg3rf23d" "hotfix/v1.0.1")
-
-  want="royge/shutil:1.0.1-rc docker image pushed"
   if [[ "$got" != *"$want"* ]]
   then
     failure "$want" "$got"
@@ -633,18 +592,14 @@ test_validate_envs_invalid
 test_get_deployment_env_develop_branch
 test_get_deployment_env_release_branch
 test_get_deployment_env_release_tag
-test_get_deployment_env_release_candidate_tag
 test_get_deployment_env_unknown
 test_get_deployment_env_feature_branch
-test_get_deployment_env_hotfix_branch
 test_get_deployment_env_bugfix_branch
-test_get_deployment_hotfix_release_branch
 test_exit_if_unknown_env_test
 test_exit_if_unknown_env_unknown
 test_exit_if_unknown_env_unknown_force_deploy
 test_create_docker_image_test
 test_create_docker_image_stage
-test_create_docker_image_stage_hotfix
 
 ## WARNING: Dependent of test_create_docker_image_stage
 test_create_docker_image_prod

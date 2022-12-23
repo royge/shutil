@@ -32,7 +32,7 @@ get_deployment_env () {
   env=unknown
   branch_or_tag=$1
 
-  if [ "$env" == "unknown" ] && [ "$branch_or_tag" == "develop" ]
+  if [ "$env" == "unknown" ] && [ "$branch_or_tag" == "main" ]
   then
     echo "test"
     exit 0
@@ -44,21 +44,9 @@ get_deployment_env () {
     exit 0
   fi
 
-  if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == v*-rc ]]
-  then
-    echo "stage"
-    exit 0
-  fi
-
   if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == v*-* ]]
   then
     echo "unknown"
-    exit 0
-  fi
-
-  if [ "$env" == "unknown" ] && [[ "$branch_or_tag" == hotfix/v* ]]
-  then
-    echo "stage"
     exit 0
   fi
 
@@ -128,24 +116,6 @@ create_docker_image () {
             docker push $IMAGE:$TAG-beta
 
             echo "$IMAGE:beta docker image pushed"
-
-            # Release candidate branch will create a release candidate docker image.
-            if [[ "$BRANCH_OR_TAG" == release/v*-rc ]]
-            then
-                docker tag $IMAGE:latest $IMAGE:$TAG-rc
-                docker push $IMAGE:$TAG-rc
-
-                echo "$IMAGE:$TAG-rc docker image pushed"
-            fi
-        fi
-
-        if [ "$BRANCH_TYPE" == "hotfix" ]
-        then
-            docker tag $IMAGE:latest $IMAGE:$TAG-rc
-
-            docker push $IMAGE:$TAG-rc
-            echo "$IMAGE:$TAG-rc docker image pushed"
-            exit 0
         fi
 
         docker push $IMAGE:$TAG
@@ -154,11 +124,10 @@ create_docker_image () {
 
     if [ "$ENV" == "prod" ]
     then
-        docker pull $RELEASE_IMAGE:$TAG-rc
+        docker pull $RELEASE_IMAGE:$TAG
 
-        # Create production docker image tag from release candidate image.
-        docker tag $RELEASE_IMAGE:$TAG-rc $IMAGE:stable
-        docker tag $RELEASE_IMAGE:$TAG-rc $IMAGE:$TAG
+        docker tag $RELEASE_IMAGE:$TAG $IMAGE:stable
+        docker tag $RELEASE_IMAGE:$TAG $IMAGE:$TAG
 
         # Push production stable docker image.
         docker push $IMAGE:stable
