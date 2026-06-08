@@ -482,6 +482,57 @@ test_cleanup () {
   success
 }
 
+test_get_targets () {
+  echo "Testing get_targets"
+
+  testdir=/tmp/shutiltargets
+  rm -rf $testdir
+  mkdir -p $testdir
+
+  cat > "$testdir/apple.tf" <<'EOF'
+module "test_apple" {
+  source = "../../"
+}
+module "test_apple_juice" {
+  source = "../../"
+}
+module "test_apple_pie" {
+  source = "../../job"
+}
+EOF
+
+  cat > "$testdir/orange.tf" <<'EOF'
+module "test_orange" {
+  source = "../../"
+}
+EOF
+
+  echo "Testing get_targets - service with companion modules"
+  want="-target=module.test_apple -target=module.test_apple_juice -target=module.test_apple_pie"
+  got=$(get_targets $testdir test_apple)
+  if [[ "$got" != "$want" ]]; then
+    failure "$want" "$got"
+  fi
+
+  echo "Testing get_targets - service without companion modules"
+  want="-target=module.test_orange"
+  got=$(get_targets $testdir test_orange)
+  if [[ "$got" != "$want" ]]; then
+    failure "$want" "$got"
+  fi
+
+  echo "Testing get_targets - unknown service"
+  want=""
+  got=$(get_targets $testdir test_unknown)
+  if [[ "$got" != "$want" ]]; then
+    failure "'$want'" "'$got'"
+  fi
+
+  rm -rf $testdir
+
+  success
+}
+
 test_get_branch_type_feature () {
   echo "Testing get_branch_type - feature"
 
@@ -617,6 +668,7 @@ test_exit_if_hotfix_ok
 test_exit_if_hotfix_not_ok
 
 test_cleanup
+test_get_targets
 test_get_branch_type_feature
 test_get_branch_type_release
 test_get_branch_type_hotfix

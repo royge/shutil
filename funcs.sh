@@ -139,6 +139,26 @@ create_docker_image () {
     fi
 }
 
+# Build Terraform `-target` flags for a service and its companion modules.
+#
+# Given a Terraform directory and a base module name "<env>_<service>", it
+# scans the *.tf files for the service module and any companion modules named
+# "<env>_<service>_<suffix>" (e.g. <service>_apple, <service>_orange) and
+# prints one `-target=module.<name>` flag per matching module, space separated
+# and sorted.
+#
+# NOTE: See tests for usage examples.
+get_targets () {
+    TERRAFORM_DIR=$1
+    MODULE_NAME=$2
+
+    grep -hoE "^module \"${MODULE_NAME}(_[a-z0-9_]+)?\"" "$TERRAFORM_DIR"/*.tf 2>/dev/null \
+        | sed -E 's/^module "(.*)"$/-target=module.\1/' \
+        | sort -u \
+        | tr '\n' ' ' \
+        | sed 's/ $//'
+}
+
 # Exit if `ENV` is unknown or no target deployment environment identified.
 exit_if_unknown_env () {
     ENV=$1
