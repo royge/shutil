@@ -139,6 +139,36 @@ create_docker_image () {
     fi
 }
 
+# Download and install the Terraform binary into a target directory.
+#
+# Skips the download when terraform is already available on PATH.
+#
+# Arguments:
+#   1. Terraform version (e.g. 1.5.7)
+#   2. Install directory (e.g. /usr/local/bin)
+#
+# NOTE: See tests for usage examples.
+download_terraform () {
+    VERSION=$1
+    INSTALL_DIR=$2
+
+    if command -v terraform > /dev/null 2>&1
+    then
+        echo "terraform already installed, skipping download"
+        return 0
+    fi
+
+    ZIP="terraform_${VERSION}_linux_amd64.zip"
+
+    echo "Downloading Terraform ${VERSION} ..."
+    curl -fsSL -o "/tmp/${ZIP}" \
+        "https://releases.hashicorp.com/terraform/${VERSION}/${ZIP}"
+    unzip -o "/tmp/${ZIP}" -d "$INSTALL_DIR"
+    rm -f "/tmp/${ZIP}"
+
+    echo "terraform ${VERSION} installed in ${INSTALL_DIR}"
+}
+
 # Build Terraform `-target` flags for a service and its companion modules.
 #
 # Given a Terraform directory and a base module name "<env>_<service>", it

@@ -533,6 +533,33 @@ EOF
   success
 }
 
+test_download_terraform_already_installed () {
+  echo "Testing download_terraform - already installed"
+
+  testbin=/tmp/shutilterraform
+  rm -rf $testbin
+  mkdir -p $testbin
+
+  # Provide a fake terraform on PATH so no real download is attempted.
+  cat > "$testbin/terraform" <<'EOF'
+#!/usr/bin/env bash
+echo "fake terraform"
+EOF
+  chmod +x "$testbin/terraform"
+
+  want="terraform already installed, skipping download"
+  got=$(PATH="$testbin:$PATH" download_terraform "1.5.7" "$testbin")
+
+  if [ "$want" != "$got" ]
+  then
+    failure "$want" "$got"
+  fi
+
+  rm -rf $testbin
+
+  success
+}
+
 test_get_branch_type_feature () {
   echo "Testing get_branch_type - feature"
 
@@ -669,6 +696,7 @@ test_exit_if_hotfix_not_ok
 
 test_cleanup
 test_get_targets
+test_download_terraform_already_installed
 test_get_branch_type_feature
 test_get_branch_type_release
 test_get_branch_type_hotfix
