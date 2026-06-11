@@ -560,6 +560,96 @@ EOF
   success
 }
 
+test_wait_for_build_success () {
+  echo "Testing wait_for_build - success"
+
+  testbin=/tmp/shutilbuildok
+  rm -rf $testbin
+  mkdir -p $testbin
+
+  # Mock gcloud so the status query reports SUCCESS without calling the API.
+  cat > "$testbin/gcloud" <<'EOF'
+#!/usr/bin/env bash
+echo "SUCCESS"
+EOF
+  chmod +x "$testbin/gcloud"
+
+  want="Cloud Build my-build succeeded"
+  got=$(PATH="$testbin:$PATH" wait_for_build my-build my-project asia-southeast1 0)
+  rc=$?
+
+  if [ "$want" != "$got" ]; then failure "$want" "$got"; fi
+  if [ "$rc" != "0" ]; then failure "0" "$rc"; fi
+
+  rm -rf $testbin
+
+  success
+}
+
+test_wait_for_build_failure () {
+  echo "Testing wait_for_build - failure"
+
+  testbin=/tmp/shutilbuildfail
+  rm -rf $testbin
+  mkdir -p $testbin
+
+  # Mock gcloud: the status query (value(status)) reports FAILURE; the details
+  # query returns the failure info that should be logged.
+  cat > "$testbin/gcloud" <<'EOF'
+#!/usr/bin/env bash
+if [[ "$*" == *"value(status)"* ]]; then
+  echo "FAILURE"
+else
+  echo "build step failed"
+fi
+EOF
+  chmod +x "$testbin/gcloud"
+
+  PATH="$testbin:$PATH" wait_for_build my-build my-project asia-southeast1 0 > /dev/null 2>&1
+  rc=$?
+
+  if [ "$rc" != "1" ]; then failure "1" "$rc"; fi
+
+  rm -rf $testbin
+
+  success
+}
+
+test_wait_for_build_polls_until_terminal () {
+  echo "Testing wait_for_build - polls until terminal state"
+
+  testbin=/tmp/shutilbuildpoll
+  rm -rf $testbin
+  mkdir -p $testbin
+
+  # Mock gcloud with a counter: WORKING on the first status query, SUCCESS on
+  # the second, proving the loop keeps polling non-terminal states.
+  cat > "$testbin/gcloud" <<'EOF'
+#!/usr/bin/env bash
+counter=/tmp/shutilbuildpoll/count
+n=$(cat "$counter" 2>/dev/null || echo 0)
+echo $((n + 1)) > "$counter"
+if [ "$n" == "0" ]; then
+  echo "WORKING"
+else
+  echo "SUCCESS"
+fi
+EOF
+  chmod +x "$testbin/gcloud"
+
+  want="Cloud Build my-build status: WORKING
+Cloud Build my-build succeeded"
+  got=$(PATH="$testbin:$PATH" wait_for_build my-build my-project asia-southeast1 0)
+  rc=$?
+
+  if [ "$want" != "$got" ]; then failure "$want" "$got"; fi
+  if [ "$rc" != "0" ]; then failure "0" "$rc"; fi
+
+  rm -rf $testbin
+
+  success
+}
+
 test_get_branch_type_feature () {
   echo "Testing get_branch_type - feature"
 
@@ -697,6 +787,9 @@ test_exit_if_hotfix_not_ok
 test_cleanup
 test_get_targets
 test_download_terraform_already_installed
+test_wait_for_build_success
+test_wait_for_build_failure
+test_wait_for_build_polls_until_terminal
 test_get_branch_type_feature
 test_get_branch_type_release
 test_get_branch_type_hotfix

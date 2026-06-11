@@ -189,6 +189,49 @@ get_targets () {
         | sed 's/ $//'
 }
 
+# Wait for a Cloud Build to reach a terminal state.
+#
+# Polls `gcloud builds describe` for the given build ID until it succeeds or
+# fails. On success it returns 0; on any failure state it logs the failure
+# details (status detail, failure info and log URL) so the cause is actionable
+# and returns 1.
+#
+# Usage: wait_for_build BUILD_ID PROJECT_ID REGION [POLL_INTERVAL]
+#
+# NOTE: See tests for usage examples.
+wait_for_build () {
+    BUILD_ID=$1
+    PROJECT_ID=$2
+    REGION=$3
+    POLL_INTERVAL=${4:-10}
+
+    while true
+    do
+        STATUS=$(gcloud builds describe "$BUILD_ID" \
+            --project="$PROJECT_ID" --region="$REGION" \
+            --format="value(status)")
+
+        case "$STATUS" in
+            SUCCESS)
+                echo "Cloud Build $BUILD_ID succeeded"
+                return 0
+                ;;
+            FAILURE|INTERNAL_ERROR|TIMEOUT|CANCELLED|EXPIRED)
+                >&2 echo "ERROR: Cloud Build $BUILD_ID finished with status $STATUS"
+                # Log the failure details and log URL so the cause is actionable.
+                >&2 gcloud builds describe "$BUILD_ID" \
+                    --project="$PROJECT_ID" --region="$REGION" \
+                    --format="value(statusDetail, failureInfo.type, failureInfo.detail, logUrl)"
+                return 1
+                ;;
+            *)
+                echo "Cloud Build $BUILD_ID status: $STATUS"
+                sleep "$POLL_INTERVAL"
+                ;;
+        esac
+    done
+}
+
 # Exit if `ENV` is unknown or no target deployment environment identified.
 exit_if_unknown_env () {
     ENV=$1
